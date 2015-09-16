@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.activemq.artemis.core.protocol.hornetq;
+package org.apache.activemq.artemis.core.protocol.hornetq.client;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.Interceptor;
@@ -24,8 +24,7 @@ import org.apache.activemq.artemis.core.protocol.core.impl.wireformat.MessagePac
 import org.apache.activemq.artemis.core.protocol.hornetq.util.HQPropertiesConverter;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 
-public class HQPropertiesConversionInterceptor implements Interceptor {
-
+public class HQPropertiesOutgoingInterceptor implements Interceptor {
 
    @Override
    public boolean intercept(Packet packet, RemotingConnection connection) throws ActiveMQException {
@@ -36,7 +35,6 @@ public class HQPropertiesConversionInterceptor implements Interceptor {
    }
 
    private void handleReceiveMessage(MessagePacket messagePacket) {
-      HQPropertiesConverter.replaceEitherProperties(messagePacket.getMessage());
+      HQPropertiesConverter.replaceAMQProperties(messagePacket.getMessage());
    }
-
 }
