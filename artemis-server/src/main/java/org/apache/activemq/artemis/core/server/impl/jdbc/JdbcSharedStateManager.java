@@ -80,6 +80,8 @@ final class JdbcSharedStateManager extends AbstractJDBCDriver implements SharedS
       try {
          createTable(sqlProvider.createNodeManagerStoreTableSQL(), sqlProvider.createNodeIdSQL(), sqlProvider.createStateSQL(), sqlProvider.createLiveLockSQL(), sqlProvider.createBackupLockSQL());
       } catch (SQLException e) {
+         System.err.println("JFM error while creating JDBC schema for shared state");
+         e.printStackTrace();
          //no op: if a table already exists is not a problem in this case, the prepareStatements() call will fail right after it if the table is not correctly initialized
       }
    }

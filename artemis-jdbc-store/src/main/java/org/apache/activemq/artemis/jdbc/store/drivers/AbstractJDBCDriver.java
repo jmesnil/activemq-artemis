@@ -191,6 +191,7 @@ public abstract class AbstractJDBCDriver {
                }
                try (Statement statement = connection.createStatement()) {
                   for (String sql : sqls) {
+                     logger.error("JFM executing statement: " + sql);
                      statement.executeUpdate(sql);
                      final SQLWarning statementSqlWarning = statement.getWarnings();
                      if (statementSqlWarning != null) {
