@@ -17,15 +17,16 @@
 
 package org.apache.activemq.artemis.jdbc.store.sql;
 
-import org.apache.activemq.artemis.jdbc.store.journal.JDBCJournalImpl;
-import org.jboss.logging.Logger;
-
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.util.Properties;
+import java.util.stream.Stream;
+
+import org.apache.activemq.artemis.jdbc.store.journal.JDBCJournalImpl;
+import org.jboss.logging.Logger;
 
 import static java.lang.String.format;
 
@@ -272,24 +273,35 @@ public class PropertySQLProvider implements SQLProvider {
       private final Properties sql;
 
       public enum SQLDialect {
-         ORACLE("oracle"),
-         POSTGRESQL("postgresql"),
-         DERBY("derby"),
-         MYSQL("mysql"),
-         DB2("db2"),
-         HSQL("hsql"),
-         H2("h2"),
-         MSSQL("mssql"),
-         SYBASE("jconnect");
+         ORACLE("oracle", "oracle"),
+         POSTGRESQL("postgresql", "postgres"),
+         DERBY("derby", "derby"),
+         MYSQL("mysql", "mysql"),
+         DB2("db2", "db2"),
+         HSQL("hsql", "hsql", "hypersonic"),
+         H2("h2", "h2"),
+         MSSQL("mssql", "microsoft"),
+         SYBASE("jconnect", "jconnect");
 
          private final String key;
+         private final String[] driverKeys;
 
-         SQLDialect(String key) {
+         SQLDialect(String key, String... driverKeys) {
             this.key = key;
+            this.driverKeys = driverKeys;
          }
 
          String getKey() {
             return key;
+         }
+
+         private boolean match(String driverName) {
+            for (String driverKey : driverKeys) {
+               if (driverName.contains(driverKey)) {
+                  return true;
+               }
+            }
+            return false;
          }
 
          /**
@@ -299,29 +311,12 @@ public class PropertySQLProvider implements SQLProvider {
             if (name == null) {
                return null;
             }
-            switch (name.toLowerCase()) {
-               case "postgres":
-                  return POSTGRESQL;
-               case "mysql":
-                  return MYSQL;
-               case "db2":
-                  return DB2;
-               case "derby":
-                  return DERBY;
-               case "hsql":
-               case "hypersonic":
-                  return HSQL;
-               case "h2":
-                  return H2;
-               case "oracle":
-                  return ORACLE;
-               case "microsoft":
-                  return MSSQL;
-               case "jconnnect":
-                  return SYBASE;
-               default:
-                  return null;
-            }
+            //use a lower case name to make it more resilient
+            final String lowerCaseName = name.toLowerCase();
+            return Stream.of(SQLDialect.values())
+               .filter(dialect -> dialect.match(lowerCaseName))
+               .findFirst()
+               .orElse(null);
          }
       }
 
