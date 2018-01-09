@@ -48,7 +48,7 @@ public class PropertySQLProvider implements SQLProvider {
    private final Factory.SQLDialect dialect;
    private volatile Properties sql;
 
-   protected PropertySQLProvider(Factory.SQLDialect dialect, String tableName, Properties sqlProperties, SQLProvider.DatabaseStoreType storeType) {
+   protected PropertySQLProvider(Factory.SQLDialect dialect, String tableName, Properties sqlProperties) {
       this.dialect = dialect;
       this.tableName = tableName;
       this.sql = sqlProperties;
@@ -374,7 +374,7 @@ public class PropertySQLProvider implements SQLProvider {
          if (dialect == SQLDialect.ORACLE) {
             return new Oracle12CSQLProvider(tableName, sql, dbStoreType);
          } else {
-            return new PropertySQLProvider(dialect, tableName, sql, dbStoreType);
+            return new PropertySQLProvider(dialect, tableName, sql);
          }
       }
    }
