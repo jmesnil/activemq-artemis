@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.util.Properties;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.activemq.artemis.jdbc.store.journal.JDBCJournalImpl;
@@ -39,6 +40,27 @@ import static java.lang.String.format;
  */
 public class PropertySQLProvider implements SQLProvider {
 
+   private enum LetterCase implements Function<String, String> {
+      upper(String::toUpperCase),
+      lower(String::toLowerCase),
+      none(Function.identity());
+
+      private final Function<String, String> transform;
+
+      LetterCase(Function<String, String> transform) {
+         this.transform = transform;
+      }
+
+      @Override
+      public String apply(String s) {
+         return transform.apply(s);
+      }
+
+      public static LetterCase parse(String value) {
+         return LetterCase.valueOf(value);
+      }
+   }
+
    private static final int STATE_ROW_ID = 0;
    private static final int LIVE_LOCK_ROW_ID = 1;
    private static final int BACKUP_LOCK_ROW_ID = 2;
@@ -50,8 +72,9 @@ public class PropertySQLProvider implements SQLProvider {
 
    protected PropertySQLProvider(Factory.SQLDialect dialect, String tableName, Properties sqlProperties) {
       this.dialect = dialect;
-      this.tableName = tableName;
       this.sql = sqlProperties;
+      final LetterCase tableNamesCase = LetterCase.parse(sql("table-names-case", dialect, sqlProperties));
+      this.tableName = tableNamesCase.apply(tableName);
    }
 
    @Override
@@ -154,7 +177,6 @@ public class PropertySQLProvider implements SQLProvider {
 
    @Override
    public boolean closeConnectionOnShutdown() {
-      System.out.println("PropertySQLProvider.closeConnectionOnShutdown");
       return Boolean.valueOf(sql("close-connection-on-shutdown"));
    }
 
@@ -254,6 +276,10 @@ public class PropertySQLProvider implements SQLProvider {
    }
 
    private String sql(final String key) {
+      return sql(key, dialect, sql);
+   }
+
+   private static String sql(final String key, final Factory.SQLDialect dialect, final Properties sql) {
       if (dialect != null) {
          String result = sql.getProperty(key + "." + dialect.getKey());
          if (result != null) {

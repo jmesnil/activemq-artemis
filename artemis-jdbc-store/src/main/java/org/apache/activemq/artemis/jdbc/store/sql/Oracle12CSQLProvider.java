@@ -23,9 +23,8 @@ import static org.apache.activemq.artemis.jdbc.store.sql.PropertySQLProvider.Fac
 class Oracle12CSQLProvider extends PropertySQLProvider {
 
    Oracle12CSQLProvider(String tableName, Properties sqlProperties, DatabaseStoreType storeType) {
-      // Oracle driver does not support lower case for table names
-      super(ORACLE, tableName.toUpperCase(), sqlProperties);
-      if (tableName.length() > 30) {
+      super(ORACLE, tableName, sqlProperties);
+      if (getTableName().length() > 30) {
          throw new RuntimeException("The maximum name size for the " + storeType.name().toLowerCase() + " store table, when using Oracle12C is 30 characters.");
       }
    }
